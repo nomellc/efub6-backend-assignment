@@ -13,6 +13,10 @@ public enum ErrorCode {
     // member
     MEMBER_NOT_FOUND(404, "존재하는 회원이 없습니다."),
 
+    // board
+    BOARD_NOT_FOUND(404, "해당 id의 게시판이 존재하지 않습니다."),
+    BOARD_ACCOUNT_MISMATCH(401, "게시판 주인이 아닙니다."),
+
     // post
     POST_NOT_FOUND(404, "해당 id의 게시물이 존재하지 않습니다."),
     POST_ACCOUNT_MISMATCH(401, "게시글 생성자가 아닙니다.");

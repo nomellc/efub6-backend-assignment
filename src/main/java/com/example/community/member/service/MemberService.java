@@ -1,5 +1,7 @@
 package com.example.community.member.service;
 
+import com.example.community.global.exception.CustomException;
+import com.example.community.global.exception.ErrorCode;
 import com.example.community.member.domain.Member;
 import com.example.community.member.domain.MemberStatus;
 import com.example.community.member.dto.request.CreateMemberRequestDto;
@@ -57,5 +59,10 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
         member.changeStatus(MemberStatus.UNREGISTER);
+    }
+
+    public Member findByMemberId(Long memberId) {
+        return memberRepository.findByMemberId(memberId)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }
