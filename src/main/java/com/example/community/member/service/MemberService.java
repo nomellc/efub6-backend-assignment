@@ -6,19 +6,20 @@ import com.example.community.member.dto.request.CreateMemberRequestDto;
 import com.example.community.member.dto.request.UpdateMemberRequestDto;
 import com.example.community.member.dto.response.CreateMemberResponseDto;
 import com.example.community.member.dto.response.MemberResponseDto;
-import com.example.community.member.dto.response.UpdateMemberResponseDto;
 import com.example.community.member.repository.MemberRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class MemberService {
 
     private final MemberRepository memberRepository;
+
     // 회원 단건 조회
+    @Transactional(readOnly = true)
     public MemberResponseDto getMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
@@ -41,19 +42,13 @@ public class MemberService {
 
     // 회원 정보 수정
     @Transactional
-    public UpdateMemberResponseDto updateMember(Long memberId, UpdateMemberRequestDto requestDto) {
+    public MemberResponseDto updateMember(Long memberId, @Valid UpdateMemberRequestDto requestDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
 
-        member.updateProfile(
-                requestDto.getEmail(),
-                requestDto.getPassword(),
-                requestDto.getNickname(),
-                requestDto.getUniversity(),
-                requestDto.getStudentId()
-        );
+        member.updateProfile(requestDto);
 
-        return UpdateMemberResponseDto.from(member);
+        return MemberResponseDto.from(member);
     }
 
     // 회원 논리적 삭제
