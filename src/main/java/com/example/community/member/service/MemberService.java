@@ -32,7 +32,7 @@ public class MemberService {
     @Transactional
     public CreateMemberResponseDto createMember(CreateMemberRequestDto requestDto) {
         // 이메일 중복 검사
-        if (memberRepository.existsByEmail(requestDto.getEmail())) {
+        if (memberRepository.existsByEmail(requestDto.email())) {
             throw new IllegalArgumentException("이미 가입된 이메일입니다.");
         }
 

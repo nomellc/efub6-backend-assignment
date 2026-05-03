@@ -1,6 +1,5 @@
 package com.example.community.board.controller;
 
-import com.example.community.board.domain.Board;
 import com.example.community.board.dto.request.CreateBoardRequest;
 import com.example.community.board.dto.request.UpdateBoardOwnerRequest;
 import com.example.community.board.dto.response.BoardListResponse;
@@ -20,8 +19,9 @@ public class BoardController {
 
     // 게시판 생성
     @PostMapping
-    public ResponseEntity<BoardResponse> createBoard(@Valid @RequestBody CreateBoardRequest request) {
-        BoardResponse response = boardService.createBoard(request);
+    public ResponseEntity<BoardResponse> createBoard(@RequestHeader("Auth-Id") Long memberId,
+                                                     @Valid @RequestBody CreateBoardRequest request) {
+        BoardResponse response = boardService.createBoard(memberId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

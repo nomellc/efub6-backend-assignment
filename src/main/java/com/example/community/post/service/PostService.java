@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class PostService {
         return new PostListResponse(postSummaries, count);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PostResponse getPost(Long postId) {
         Post post = findByPostId(postId);
         return PostResponse.from(post);
@@ -63,7 +64,7 @@ public class PostService {
         Member member = memberService.findByMemberId(memberId);
 
         authorizePostWriter(post, member);
-        post.changePost(request.getTitle(), request.getContent());
+        post.changePost(request.title(), request.content());
     }
 
     @Transactional
@@ -81,7 +82,7 @@ public class PostService {
     }
 
     private void authorizePostWriter(Post post, Member member) {
-        if(!post.getWriter().equals(member)) {
+        if (!Objects.equals(post.getWriter().getMemberId(), member.getMemberId())) {
             throw new CustomException(ErrorCode.POST_ACCOUNT_MISMATCH);
         }
     }

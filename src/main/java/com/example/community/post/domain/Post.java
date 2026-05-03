@@ -3,7 +3,6 @@ package com.example.community.post.domain;
 import com.example.community.board.domain.Board;
 import com.example.community.global.domain.BaseEntity;
 import com.example.community.member.domain.Member;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,7 +32,7 @@ public class Post extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 500)
     private String content;
 
     @Builder

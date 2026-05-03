@@ -5,8 +5,6 @@ import com.example.community.member.dto.request.UpdateMemberRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Table(name = "member")
@@ -48,8 +46,8 @@ public class Member extends BaseEntity {
     }
 
     public void updateProfile(UpdateMemberRequestDto dto) {
-        if(dto.getEmail() != null)      this.email = dto.getEmail();
-        if(dto.getNickname() != null)   this.nickname = dto.getNickname();
+        if (dto.email() != null)      this.email = dto.email();
+        if (dto.nickname() != null)   this.nickname = dto.nickname();
     }
 
     public void changeStatus(MemberStatus status) {
