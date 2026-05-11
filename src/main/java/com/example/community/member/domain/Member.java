@@ -1,15 +1,15 @@
 package com.example.community.member.domain;
 
+import com.example.community.global.domain.BaseEntity;
+import com.example.community.member.dto.request.UpdateMemberRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,11 +34,6 @@ public class Member {
     @Column(nullable = false, length = 20)
     private MemberStatus status = MemberStatus.REGISTER;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @Builder
     public Member(String email, String password, String nickname, String university, String studentId) {
@@ -50,23 +45,9 @@ public class Member {
         this.status = MemberStatus.REGISTER;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public void updateProfile(String email, String password, String nickname, String university, String studentId) {
-        this.email = email;
-        this.password = password;
-        this.nickname = nickname;
-        this.university = university;
-        this.studentId = studentId;
+    public void updateProfile(UpdateMemberRequestDto dto) {
+        if (dto.email() != null)      this.email = dto.email();
+        if (dto.nickname() != null)   this.nickname = dto.nickname();
     }
 
     public void changeStatus(MemberStatus status) {

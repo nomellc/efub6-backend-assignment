@@ -1,13 +1,12 @@
 package com.example.community.member.dto.request;
 
-import lombok.Getter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 
-@Getter
-public class UpdateMemberRequestDto {
+public record UpdateMemberRequestDto(
+        @Email(message = "이메일 형식이 올바르지 않습니다.")
+        String email,
 
-    private String email;
-    private String password;
-    private String nickname;
-    private String university;
-    private String studentId;
-}
+        @Size(max = 50)
+        String nickname
+) { }

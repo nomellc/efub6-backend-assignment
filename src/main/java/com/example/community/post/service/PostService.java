@@ -1,0 +1,89 @@
+package com.example.community.post.service;
+
+import com.example.community.board.domain.Board;
+import com.example.community.board.service.BoardService;
+import com.example.community.global.exception.CustomException;
+import com.example.community.global.exception.ErrorCode;
+import com.example.community.member.domain.Member;
+import com.example.community.member.service.MemberService;
+import com.example.community.post.domain.Post;
+import com.example.community.post.dto.request.CreatePostRequest;
+import com.example.community.post.dto.request.UpdatePostRequest;
+import com.example.community.post.dto.response.PostListResponse;
+import com.example.community.post.dto.response.PostResponse;
+import com.example.community.post.dto.summary.PostSummary;
+import com.example.community.post.repository.PostRepository;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+public class PostService {
+    private final PostRepository postRepository;
+    private final MemberService memberService;
+    private final BoardService boardService;
+
+    @Transactional
+    public PostResponse createPost(Long boardId, Long memberId, @Valid CreatePostRequest request) {
+        Member member = memberService.findByMemberId(memberId);
+        Board board = boardService.findByBoardId(boardId);
+
+        Post post = request.toEntity(member, board);
+        Post saved = postRepository.save(post);
+
+        return PostResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PostListResponse getAllPosts(Long boardId) {
+        List<PostSummary> postSummaries = postRepository
+                .findAllByBoard_BoardIdOrderByCreatedAtDesc(boardId)
+                .stream()
+                .map(PostSummary::from)
+                .toList();
+
+        long count = postRepository.countByBoard_BoardId(boardId);
+
+        return new PostListResponse(postSummaries, count);
+    }
+
+    @Transactional(readOnly = true)
+    public PostResponse getPost(Long postId) {
+        Post post = findByPostId(postId);
+        return PostResponse.from(post);
+    }
+
+    @Transactional
+    public void updatePostContent(Long postId, Long memberId, @Valid UpdatePostRequest request) {
+        Post post = findByPostId(postId);
+        Member member = memberService.findByMemberId(memberId);
+
+        authorizePostWriter(post, member);
+        post.changePost(request.title(), request.content());
+    }
+
+    @Transactional
+    public void deletePost(Long postId, Long memberId) {
+        Post post = findByPostId(postId);
+        Member member = memberService.findByMemberId(memberId);
+
+        authorizePostWriter(post, member);
+        postRepository.delete(post);
+    }
+
+    public Post findByPostId(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    private void authorizePostWriter(Post post, Member member) {
+        if (!Objects.equals(post.getWriter().getMemberId(), member.getMemberId())) {
+            throw new CustomException(ErrorCode.POST_ACCOUNT_MISMATCH);
+        }
+    }
+}
