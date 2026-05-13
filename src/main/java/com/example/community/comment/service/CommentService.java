@@ -54,6 +54,15 @@ public class CommentService {
         comment.changeContent(request.content());
     }
 
+    @Transactional
+    public void deleteComment(Long commentId, Long memberId) {
+        Comment comment = findByCommentId(commentId);
+        Member member = memberService.findByMemberId(memberId);
+
+        authorizeCommentWriter(comment, member);
+        commentRepository.delete(comment);
+    }
+
     @Transactional(readOnly = true)
     public CommentListResponse getCommentsByPost(Long postId) {
         postService.findByPostId(postId);
