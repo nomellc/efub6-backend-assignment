@@ -20,10 +20,12 @@ public enum ErrorCode {
     // post
     POST_NOT_FOUND(404, "해당 id의 게시물이 존재하지 않습니다."),
     POST_ACCOUNT_MISMATCH(401, "게시글 생성자가 아닙니다."),
+    POST_LIKE_ALREADY_EXISTS(409, "이미 좋아요를 누른 게시글입니다."),
+    POST_LIKE_NOT_FOUND(404, "좋아요가 존재하지 않습니다."),
 
     // comment
     COMMENT_NOT_FOUND(404, "해당 id의 댓글이 존재하지 않습니다."),
-    COMMENT_ACCOUNT_MISMATCH(401, "댓글 작성자가 아닙니다.");
+    COMMENT_ACCOUNT_MISMATCH(403, "댓글 작성자가 아닙니다.");
 
     private final int status;
     private final String message;

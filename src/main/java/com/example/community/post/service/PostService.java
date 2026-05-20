@@ -7,13 +7,14 @@ import com.example.community.global.exception.ErrorCode;
 import com.example.community.member.domain.Member;
 import com.example.community.member.service.MemberService;
 import com.example.community.post.domain.Post;
+import com.example.community.post.domain.PostLike;
 import com.example.community.post.dto.request.CreatePostRequest;
 import com.example.community.post.dto.request.UpdatePostRequest;
 import com.example.community.post.dto.response.PostListResponse;
 import com.example.community.post.dto.response.PostResponse;
 import com.example.community.post.dto.summary.PostSummary;
+import com.example.community.post.repository.PostLikeRepository;
 import com.example.community.post.repository.PostRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +26,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final MemberService memberService;
     private final BoardService boardService;
 
     @Transactional
-    public PostResponse createPost(Long boardId, Long memberId, @Valid CreatePostRequest request) {
+    public PostResponse createPost(Long boardId, Long memberId, CreatePostRequest request) {
         Member member = memberService.findByMemberId(memberId);
         Board board = boardService.findByBoardId(boardId);
 
@@ -59,7 +61,7 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePostContent(Long postId, Long memberId, @Valid UpdatePostRequest request) {
+    public void updatePostContent(Long postId, Long memberId, UpdatePostRequest request) {
         Post post = findByPostId(postId);
         Member member = memberService.findByMemberId(memberId);
 
@@ -74,6 +76,33 @@ public class PostService {
 
         authorizePostWriter(post, member);
         postRepository.delete(post);
+    }
+
+    @Transactional
+    public void createPostLike(Long postId, Long memberId) {
+        Post post = findByPostId(postId);
+        Member member = memberService.findByMemberId(memberId);
+
+        if (postLikeRepository.existsByPostAndMember(post, member)) {
+            throw new CustomException(ErrorCode.POST_LIKE_ALREADY_EXISTS);
+        }
+
+        PostLike postLike = PostLike.builder()
+                .post(post)
+                .member(member)
+                .build();
+        postLikeRepository.save(postLike);
+    }
+
+    @Transactional
+    public void deletePostLike(Long postId, Long memberId) {
+        Post post = findByPostId(postId);
+        Member member = memberService.findByMemberId(memberId);
+
+        PostLike postLike = postLikeRepository.findByPostAndMember(post, member)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_LIKE_NOT_FOUND));
+
+        postLikeRepository.delete(postLike);
     }
 
     public Post findByPostId(Long postId) {

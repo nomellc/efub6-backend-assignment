@@ -1,5 +1,11 @@
 package com.example.community.comment.service;
 
+import java.util.List;
+import java.util.Objects;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.community.comment.domain.Comment;
 import com.example.community.comment.dto.request.CreateCommentRequest;
 import com.example.community.comment.dto.request.UpdateCommentRequest;
@@ -12,13 +18,8 @@ import com.example.community.member.domain.Member;
 import com.example.community.member.service.MemberService;
 import com.example.community.post.domain.Post;
 import com.example.community.post.service.PostService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +30,7 @@ public class CommentService {
     private final MemberService memberService;
 
     @Transactional
-    public CommentResponse createComment(Long postId, Long memberId, @Valid CreateCommentRequest request) {
+    public CommentResponse createComment(Long postId, Long memberId, CreateCommentRequest request) {
         Post post = postService.findByPostId(postId);
         Member writer = memberService.findByMemberId(memberId);
 
@@ -45,7 +46,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(Long commentId, Long memberId, @Valid UpdateCommentRequest request) {
+    public void updateComment(Long commentId, Long memberId, UpdateCommentRequest request) {
         Comment comment = findByCommentId(commentId);
         Member member = memberService.findByMemberId(memberId);
 
@@ -53,11 +54,20 @@ public class CommentService {
         comment.changeContent(request.content());
     }
 
+    @Transactional
+    public void deleteComment(Long commentId, Long memberId) {
+        Comment comment = findByCommentId(commentId);
+        Member member = memberService.findByMemberId(memberId);
+
+        authorizeCommentWriter(comment, member);
+        commentRepository.delete(comment);
+    }
+
     @Transactional(readOnly = true)
     public CommentListResponse getCommentsByPost(Long postId) {
         postService.findByPostId(postId);
 
-        List<CommentResponse> comments = commentRepository.findAllByPost_IdOrderByCreatedAtAsc(postId).stream()
+        List<CommentResponse> comments = commentRepository.findAllByPost_IdOrderByCreatedAtDesc(postId).stream()
                 .map(CommentResponse::from)
                 .toList();
 
