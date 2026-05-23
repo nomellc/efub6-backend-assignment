@@ -1,7 +1,6 @@
 package com.example.community.comment.service;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import com.example.community.global.exception.CustomException;
 import com.example.community.global.exception.ErrorCode;
 import com.example.community.member.domain.Member;
 import com.example.community.member.service.MemberService;
+import com.example.community.notification.service.NotificationService;
 import com.example.community.post.domain.Post;
 import com.example.community.post.service.PostService;
 
@@ -28,6 +28,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostService postService;
     private final MemberService memberService;
+    private final NotificationService notificationService;
 
     @Transactional
     public CommentResponse createComment(Long postId, Long memberId, CreateCommentRequest request) {
@@ -42,6 +43,16 @@ public class CommentService {
                 .build();
 
         Comment saved = commentRepository.save(comment);
+
+        Member postWriter = post.getWriter();
+        if (!postWriter.getMemberId().equals(writer.getMemberId())) {
+            notificationService.createCommentNotification(
+                    postWriter,
+                    post.getBoard().getName(),
+                    saved.getContent()
+            );
+        }
+
         return CommentResponse.from(saved);
     }
 
@@ -67,7 +78,7 @@ public class CommentService {
     public CommentListResponse getCommentsByPost(Long postId) {
         postService.findByPostId(postId);
 
-        List<CommentResponse> comments = commentRepository.findAllByPost_IdOrderByCreatedAtDesc(postId).stream()
+        List<CommentResponse> comments = commentRepository.findAllByPostIdOrderByCreatedAtDesc(postId).stream()
                 .map(CommentResponse::from)
                 .toList();
 
@@ -78,7 +89,7 @@ public class CommentService {
     public CommentListResponse getCommentsByMember(Long memberId) {
         memberService.findByMemberId(memberId);
 
-        List<CommentResponse> comments = commentRepository.findAllByWriter_MemberIdOrderByCreatedAtDesc(memberId).stream()
+        List<CommentResponse> comments = commentRepository.findAllByWriterMemberIdOrderByCreatedAtDesc(memberId).stream()
                 .map(CommentResponse::from)
                 .toList();
 
@@ -91,7 +102,7 @@ public class CommentService {
     }
 
     private void authorizeCommentWriter(Comment comment, Member member) {
-        if (!Objects.equals(comment.getWriter().getMemberId(), member.getMemberId())) {
+        if (!comment.getWriter().getMemberId().equals(member.getMemberId())) {
             throw new CustomException(ErrorCode.COMMENT_ACCOUNT_MISMATCH);
         }
     }
