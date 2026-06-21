@@ -48,7 +48,7 @@ jobs:
       # Spring Boot 실행 jar를 깨끗하게 다시 생성
       # 테스트는 제외(-x test)
       - name: Build boot jar with Gradle
-        run: cd community && ./gradlew clean bootJar -x test
+        run: ./gradlew clean bootJar -x test
 
       # Docker Hub 로그인
       # 이후 Docker Image Push를 위해 필요
